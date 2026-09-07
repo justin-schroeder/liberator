@@ -1,0 +1,15 @@
+/build/
+/.build/
+/.swiftpm/
+.DS_Store
+.env
+.env.*
+*.p12
+*.p8
+*.key
+*.pem
+*.cer
+*.certSigningRequest
+*.mobileprovision
+*.dmg
+*.zip

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>Label</key><string>app.liberator.mac.helper</string>
+<key>BundleProgram</key><string>Contents/Library/HelperTools/LiberatorHelper</string>
+<key>AssociatedBundleIdentifiers</key><array><string>app.liberator.mac</string></array>
+<key>MachServices</key><dict><key>app.liberator.mac.helper</key><true/></dict>
+<key>ProcessType</key><string>Interactive</string>
+</dict></plist>
