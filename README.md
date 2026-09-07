@@ -6,10 +6,9 @@ Liberator finds quarantine flags with a sweeping radar, lets you review every ta
 
 **Scan for enemies. Pick your targets. Liberate your Mac.**
 
-```sh
-./build.sh universal
-open build/Liberator.app
-```
+[![Download DMG — macOS · Intel + Apple Silicon](docs/assets/download-dmg.svg)](https://github.com/justin-schroeder/liberator/releases/latest/download/Liberator.dmg)
+
+*Download becomes available with the first signed release.*
 
 macOS 14+ · Native SwiftUI · No accounts or telemetry
 

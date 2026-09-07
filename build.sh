@@ -2,6 +2,9 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 mode=${1:-local}
+version=${RELEASE_VERSION:-0.1.0}
+build_number=${BUILD_NUMBER:-1}
+[[ "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ && "$build_number" =~ ^[1-9][0-9]*$ ]] || { echo 'Invalid release version or build number' >&2; exit 1; }
 mkdir -p build
 identity=${DEVELOPER_ID_APPLICATION:-}
 team=${DEVELOPER_TEAM_ID:-}
@@ -17,6 +20,8 @@ printf 'enum BuildIdentity { static let teamID = "%s" }\n' "$team" > build/Build
 app="$PWD/build/Liberator.app"
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources" "$app/Contents/Library/HelperTools" "$app/Contents/Library/LaunchDaemons"
 cp Resources/Info.plist "$app/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $version" "$app/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $build_number" "$app/Contents/Info.plist"
 cp Resources/B24Nose.png "$app/Contents/Resources/B24Nose.png"
 cp Resources/AgedPanel.png "$app/Contents/Resources/AgedPanel.png"
 cp Resources/AgedPanelBare.png "$app/Contents/Resources/AgedPanelBare.png"

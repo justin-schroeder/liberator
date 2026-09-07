@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="100" viewBox="0 0 440 100" role="img" aria-label="Download DMG for macOS, Intel and Apple Silicon">
+<defs><linearGradient id="metal" x2="0" y2="1"><stop stop-color="#737453"/><stop offset=".5" stop-color="#3c422b"/><stop offset="1" stop-color="#252c1b"/></linearGradient><pattern id="scuffs" width="37" height="23" patternUnits="userSpaceOnUse"><path d="M2 4l12 1m9 12l11-2M6 20l4-3" stroke="#e4dfae" stroke-opacity=".12"/></pattern></defs>
+<rect x="3" y="3" width="434" height="94" rx="10" fill="url(#metal)" stroke="#a3a17b" stroke-width="2"/>
+<rect x="8" y="8" width="424" height="84" rx="7" fill="url(#scuffs)" stroke="#151b10"/>
+<g fill="#999778" stroke="#232918"><circle cx="19" cy="19" r="4"/><circle cx="421" cy="19" r="4"/><circle cx="19" cy="81" r="4"/><circle cx="421" cy="81" r="4"/></g>
+<path d="M52 26v29m-11-9 11 11 11-11M37 64h30" fill="none" stroke="#e6dfae" stroke-width="5"/>
+<text x="92" y="48" font-family="Georgia,serif" font-style="italic" font-weight="bold" font-size="29" fill="#f0e8bb">Download DMG</text>
+<text x="94" y="71" font-family="monospace" font-size="11" letter-spacing="1.5" fill="#ccc8a4">macOS · INTEL + APPLE SILICON</text>
+<path d="m385 34 5 5 7-1-3 7 3 6-8-1-5 5-1-8-5-4 7-2z" fill="#14190e" stroke="#8c8b68"/>
+</svg>

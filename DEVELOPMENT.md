@@ -17,16 +17,50 @@ The locally signed app scans and cleans user-owned files and apps with macOS per
 
 ## Public release
 
-Install an Apple Developer ID Application certificate with its private key in Keychain. Store notarization credentials using `xcrun notarytool store-credentials`. Do not put passwords or API private keys in this repository.
+Push a stable version tag to publish a signed, notarized universal DMG automatically:
+
+```sh
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The tag supplies the app version; the Actions run number supplies its build number. The workflow runs tests, signs the helper and app with hardened runtime, notarizes and staples the app, builds and signs the DMG, notarizes and staples it, and checks signatures and Gatekeeper acceptance before publishing a GitHub Release with generated notes and a SHA-256 checksum. A failed build or notarization never publishes an unsigned fallback. Only stable `vMAJOR.MINOR.PATCH` tags are supported.
+
+The README button always points to the latest release's `Liberator.dmg`. It becomes usable after the first successful release. Download both assets and run `shasum -a 256 -c Liberator.dmg.sha256` to verify the download.
+
+### One-time repository secrets
+
+In [Actions secrets](https://github.com/justin-schroeder/liberator/settings/secrets/actions), add:
+
+| Secret | Value |
+| --- | --- |
+| `DEVELOPER_ID_P12_BASE64` | Base64 of an exported Developer ID Application certificate **and its private key**, in password-protected `.p12` format |
+| `DEVELOPER_ID_P12_PASSWORD` | Export password for that `.p12` |
+| `DEVELOPER_ID_APPLICATION` | Exact signing identity, `Developer ID Application: Name (TEAMID1234)` |
+| `DEVELOPER_TEAM_ID` | Matching ten-character Apple team ID |
+| `NOTARY_APPLE_ID` | Apple Developer account email |
+| `NOTARY_APP_PASSWORD` | Apple app-specific password for notarization, not your account password |
+
+Upload the certificate without printing its contents:
+
+```sh
+base64 < /secure/path/DeveloperID.p12 | gh secret set DEVELOPER_ID_P12_BASE64
+```
+
+Use `gh secret set NAME` to enter other values interactively. Never commit signing material or put credentials in a tag, issue, or workflow file. The hosted runner imports the certificate into a temporary keychain, validates notarization credentials, and deletes the keychain on success or failure. GitHub also discards the hosted runner after the job. Only trusted maintainers should be allowed to push release tags or change workflows.
+
+For a local signed build, install the matching certificate/private key in Keychain, store a `notarytool` profile, and run:
 
 ```sh
 export DEVELOPER_ID_APPLICATION='Developer ID Application: Your Name (TEAMID1234)'
 export DEVELOPER_TEAM_ID='TEAMID1234'
 export NOTARY_KEYCHAIN_PROFILE='liberator-notary'
-./release.sh
+RELEASE_VERSION=0.1.0 ./release.sh
 ```
 
-The script builds a universal app, signs the helper and host with hardened runtime, runs local core tests, notarizes and staples the app, verifies Gatekeeper acceptance, creates a DMG, and signs/notarizes/staples the DMG. It does not upload or publish the release to any website.
+The local script produces `build/Liberator.dmg`; GitHub publication happens only in the tag workflow. If publication fails after draft creation, delete that unpublished draft before rerunning the failed job; published releases are never overwritten automatically.
+
+References: [GitHub certificate setup](https://docs.github.com/en/actions/how-tos/deploy/deploy-to-third-party-platforms/sign-xcode-applications), [Apple notarization](https://developer.apple.com/documentation/security/customizing-the-notarization-workflow).
 
 Before public shipping, complete the signed-helper integration matrix in `SECURITY.md` on both Apple Silicon and Intel, and on the minimum supported macOS release. Local tests cannot stand in for notarization or administrator-service testing. Branding and the bundle identifiers are working release identifiers and should be finalized before users install the app, because changing them affects saved macOS permissions.
 

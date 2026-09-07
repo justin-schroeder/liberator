@@ -1,4 +1,4 @@
-LIBERATOR 0.1.0
+LIBERATOR
 
 Move Liberator to Applications. macOS 14 or later is required.
 

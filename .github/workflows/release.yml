@@ -1,0 +1,54 @@
+name: Signed macOS release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: macos-15
+    timeout-minutes: 90
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Validate version tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          [[ "$TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] || { echo 'Expected vMAJOR.MINOR.PATCH'; exit 1; }
+          echo "RELEASE_VERSION=${TAG#v}" >> "$GITHUB_ENV"
+          echo "BUILD_NUMBER=$GITHUB_RUN_NUMBER" >> "$GITHUB_ENV"
+      - name: Import signing and notarization credentials
+        env:
+          DEVELOPER_ID_P12_BASE64: ${{ secrets.DEVELOPER_ID_P12_BASE64 }}
+          DEVELOPER_ID_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+          DEVELOPER_ID_APPLICATION: ${{ secrets.DEVELOPER_ID_APPLICATION }}
+          DEVELOPER_TEAM_ID: ${{ secrets.DEVELOPER_TEAM_ID }}
+          NOTARY_APPLE_ID: ${{ secrets.NOTARY_APPLE_ID }}
+          NOTARY_APP_PASSWORD: ${{ secrets.NOTARY_APP_PASSWORD }}
+        run: ./scripts/ci-signing.sh
+      - name: Build, test, sign, notarize and staple
+        env:
+          DEVELOPER_ID_APPLICATION: ${{ secrets.DEVELOPER_ID_APPLICATION }}
+          DEVELOPER_TEAM_ID: ${{ secrets.DEVELOPER_TEAM_ID }}
+          NOTARY_KEYCHAIN_PROFILE: liberator-ci
+        run: ./release.sh
+      - name: Publish verified DMG
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$TAG" --verify-tag --draft --title "Liberator $RELEASE_VERSION" --generate-notes
+          gh release upload "$TAG" build/Liberator.dmg build/Liberator.dmg.sha256
+          gh release edit "$TAG" --draft=false --latest
+      - name: Remove temporary signing credentials
+        if: always()
+        run: |
+          security delete-keychain "$RUNNER_TEMP/liberator-signing.keychain-db" 2>/dev/null || true
+          rm -f "$RUNNER_TEMP/liberator-signing.p12"
