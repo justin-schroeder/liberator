@@ -15,3 +15,5 @@ xcrun swiftc -swift-version 5 -g -parse-as-library Sources/Core.swift Sources/Pr
 build/WorkflowTests
 xcrun swiftc -swift-version 5 -g -parse-as-library Sources/Core.swift Sources/RadarState.swift Tests/RadarTests.swift -o build/RadarTests
 build/RadarTests
+
+python3 Tests/ReleaseTests.py

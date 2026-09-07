@@ -17,12 +17,20 @@ The locally signed app scans and cleans user-owned files and apps with macOS per
 
 ## Public release
 
-Push a stable version tag to publish a signed, notarized universal DMG automatically:
+Use the release launcher from a clean, synchronized `main`:
 
 ```sh
-git tag v0.1.0
-git push origin v0.1.0
+./publish-release.sh                       # interactive version choice + confirmation
+./publish-release.sh patch --yes           # agent: no prompts
+./publish-release.sh minor --yes
+./publish-release.sh major --yes
+./publish-release.sh 1.2.3 --yes            # exact stable SemVer
+./publish-release.sh patch --dry-run       # inspect plan without mutation
 ```
+
+The launcher checks origin, Git operations, untracked changes, synchronization, existing tags and required Actions secret names. It runs the tests and a universal build, updates the bundle version, creates a release commit and annotated tag, and atomically pushes both to GitHub. Major/minor bumps reset lower components. Downgrades, repeated versions, prerelease versions and build metadata are rejected. Noninteractive execution requires an explicit version choice and `--yes`; no prompts are read from pipes. Dry run fetches refs and checks the plan but does not build or change working files or remote refs.
+
+A failed push retains the local release commit/tag for inspection and recovery, without force pushing or resetting work. Repository branch protection still applies. The launcher checks secret names, not their validity; Apple validates the actual credentials in CI. `release.sh` remains the signing/DMG packaging entry point used by CI.
 
 The tag supplies the app version; the Actions run number supplies its build number. The workflow runs tests, signs the helper and app with hardened runtime, notarizes and staples the app, builds and signs the DMG, notarizes and staples it, and checks signatures and Gatekeeper acceptance before publishing a GitHub Release with generated notes and a SHA-256 checksum. A failed build or notarization never publishes an unsigned fallback. Only stable `vMAJOR.MINOR.PATCH` tags are supported.
 

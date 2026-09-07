@@ -13,3 +13,6 @@
 *.mobileprovision
 *.dmg
 *.zip
+
+__pycache__/
+*.pyc

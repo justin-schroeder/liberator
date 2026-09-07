@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 mode=${1:-local}
-version=${RELEASE_VERSION:-0.1.0}
+version=${RELEASE_VERSION:-$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" Resources/Info.plist)}
 build_number=${BUILD_NUMBER:-1}
 [[ "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ && "$build_number" =~ ^[1-9][0-9]*$ ]] || { echo 'Invalid release version or build number' >&2; exit 1; }
 mkdir -p build
