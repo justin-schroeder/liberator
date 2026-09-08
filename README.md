@@ -8,7 +8,7 @@ Liberator finds quarantine flags with a sweeping radar, lets you review every ta
 
 [![Download DMG — macOS · Intel + Apple Silicon](docs/assets/download-dmg.svg)](https://github.com/justin-schroeder/liberator/releases/latest/download/Liberator.dmg)
 
-*Download becomes available with the first signed release.*
+*Always the latest signed, notarized release. Verify with `shasum -a 256 -c Liberator.dmg.sha256` from the [release page](https://github.com/justin-schroeder/liberator/releases/latest).*
 
 macOS 14+ · Native SwiftUI · No accounts or telemetry
 
