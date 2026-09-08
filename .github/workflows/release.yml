@@ -38,6 +38,7 @@ jobs:
           DEVELOPER_ID_APPLICATION: ${{ secrets.DEVELOPER_ID_APPLICATION }}
           DEVELOPER_TEAM_ID: ${{ secrets.DEVELOPER_TEAM_ID }}
           NOTARY_KEYCHAIN_PROFILE: liberator-ci
+          NOTARY_KEYCHAIN: ${{ runner.temp }}/liberator-signing.keychain-db
         run: ./release.sh
       - name: Publish verified DMG
         env:
