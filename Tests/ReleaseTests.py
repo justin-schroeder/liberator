@@ -3,6 +3,7 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import plistlib
 import shutil
 import subprocess
 import tempfile
@@ -36,6 +37,7 @@ class ReleaseTests(unittest.TestCase):
             path.chmod(0o755)
         cmd('git', '-C', str(self.repo), 'add', '.')
         cmd('git', '-C', str(self.repo), 'commit', '-m', 'Initial')
+        self.current = plistlib.loads((self.repo / 'Resources/Info.plist').read_bytes())['CFBundleShortVersionString']
         cmd('git', '-C', str(self.repo), 'remote', 'add', 'origin', str(self.remote))
         cmd('git', '-C', str(self.repo), 'push', '-u', 'origin', 'main')
         self.root_patch = patch.object(publish, 'ROOT', self.repo)
@@ -57,6 +59,9 @@ class ReleaseTests(unittest.TestCase):
         self.run_patch.start()
         self.addCleanup(self.run_patch.stop)
 
+    def tag(self, bump):
+        return 'v' + publish.next_version(self.current, bump)
+
     def launch(self, *args):
         with patch('sys.argv', ['publish-release', *args]):
             publish.main()
@@ -72,8 +77,8 @@ class ReleaseTests(unittest.TestCase):
         self.launch('minor', '--yes')
         self.assertEqual(publish.git('status', '--porcelain'), '')
         self.assertEqual(publish.git('rev-parse', 'HEAD'), publish.git('rev-parse', 'origin/main'))
-        self.assertEqual(publish.git('cat-file', '-t', 'v0.2.0'), 'tag')
-        self.assertIn('refs/tags/v0.2.0', publish.git('ls-remote', 'origin'))
+        self.assertEqual(publish.git('cat-file', '-t', self.tag('minor')), 'tag')
+        self.assertIn('refs/tags/' + self.tag('minor'), publish.git('ls-remote', 'origin'))
 
     def test_dirty_refused(self):
         (self.repo / 'untracked').write_text('work')
@@ -97,8 +102,8 @@ class ReleaseTests(unittest.TestCase):
     def test_push_failure_keeps_local_release(self):
         self.fail_push = True
         with self.assertRaises(subprocess.CalledProcessError): self.launch('patch', '--yes')
-        self.assertEqual(publish.git('tag'), 'v0.1.1')
-        self.assertNotIn('refs/tags/v0.1.1', publish.git('ls-remote', 'origin'))
+        self.assertEqual(publish.git('tag'), self.tag('patch'))
+        self.assertNotIn('refs/tags/' + self.tag('patch'), publish.git('ls-remote', 'origin'))
 
     def test_noninteractive_requires_explicit_intent(self):
         with patch('sys.stdin.isatty', return_value=False):
@@ -117,7 +122,7 @@ class ReleaseTests(unittest.TestCase):
         with self.assertRaises(ValueError): self.launch('patch', '--yes')
 
     def test_existing_tag_refused(self):
-        publish.git('tag', 'v0.1.1')
+        publish.git('tag', self.tag('patch'))
         with self.assertRaises(ValueError): self.launch('patch', '--yes')
 
 
