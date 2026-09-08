@@ -26,10 +26,17 @@ cp Resources/B24Nose.png "$app/Contents/Resources/B24Nose.png"
 cp Resources/AgedPanel.png "$app/Contents/Resources/AgedPanel.png"
 cp Resources/AgedPanelBare.png "$app/Contents/Resources/AgedPanelBare.png"
 cp Resources/app.liberator.mac.helper.plist "$app/Contents/Library/LaunchDaemons/"
+# Icon rendering and every per-architecture compile are independent, so they run concurrently.
+mkdir -p build/AppIcon.iconset
+pids=()
+xcrun swift Resources/Icon.swift "$PWD/build/AppIcon.iconset" & pids+=($!)
 for arch in "${archs[@]}"; do
-  xcrun swiftc -swift-version 5 -O -target "$arch-apple-macosx14.0" -parse-as-library Sources/Core.swift Sources/Privilege.swift Sources/Benchmark.swift Sources/RadarState.swift Sources/Model.swift Sources/Theme.swift Sources/RadarView.swift Sources/App.swift build/BuildIdentity.swift -framework SwiftUI -framework AppKit -framework ExecutionPolicy -framework ServiceManagement -framework Security -o "build/Liberator-$arch"
-  xcrun swiftc -swift-version 5 -O -target "$arch-apple-macosx14.0" -parse-as-library Sources/Core.swift Sources/Privilege.swift Sources/Helper.swift build/BuildIdentity.swift -framework Foundation -framework ServiceManagement -framework Security -o "build/LiberatorHelper-$arch"
+  xcrun swiftc -swift-version 5 -O -target "$arch-apple-macosx14.0" -parse-as-library Sources/Core.swift Sources/Privilege.swift Sources/Benchmark.swift Sources/RadarState.swift Sources/Model.swift Sources/Theme.swift Sources/RadarView.swift Sources/App.swift build/BuildIdentity.swift -framework SwiftUI -framework AppKit -framework ExecutionPolicy -framework ServiceManagement -framework Security -o "build/Liberator-$arch" & pids+=($!)
+  xcrun swiftc -swift-version 5 -O -target "$arch-apple-macosx14.0" -parse-as-library Sources/Core.swift Sources/Privilege.swift Sources/Helper.swift build/BuildIdentity.swift -framework Foundation -framework ServiceManagement -framework Security -o "build/LiberatorHelper-$arch" & pids+=($!)
 done
+status=0
+for pid in "${pids[@]}"; do wait "$pid" || status=1; done
+[[ $status -eq 0 ]] || { echo 'Build failed' >&2; exit 1; }
 bins=(); helpers=()
 for arch in "${archs[@]}"; do bins+=("build/Liberator-$arch"); helpers+=("build/LiberatorHelper-$arch"); done
 if [[ ${#archs[@]} -gt 1 ]]; then
@@ -39,8 +46,6 @@ else
   cp "${bins[0]}" "$app/Contents/MacOS/Liberator"
   cp "${helpers[0]}" "$app/Contents/Library/HelperTools/LiberatorHelper"
 fi
-mkdir -p build/AppIcon.iconset
-xcrun swift Resources/Icon.swift "$PWD/build/AppIcon.iconset"
 cp build/AppIcon.iconset/icon_512x512.png "$app/Contents/Resources/DockIcon.png"
 iconutil -c icns build/AppIcon.iconset -o "$app/Contents/Resources/AppIcon.icns"
 signflags=(--force --options runtime --sign "$identity")
